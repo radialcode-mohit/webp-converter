@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to WebP Converter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <input type="file" id="imageInput" accept="image/*">
+        <button id="convertButton">Convert to WebP</button>
+    </div>
+    <script>// script.js
+        // script.js
+        document.getElementById('convertButton').addEventListener('click', function () {
+            const input = document.getElementById('imageInput').files[0];
+            if (!input) {
+                alert('Please select an image.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const img = new Image();
+                img.onload = function () {
+                    const maxWidth = 800; // Maximum width for the resized image
+                    const maxHeight = 800; // Maximum height for the resized image
+                    let imgWidth = img.width;
+                    let imgHeight = img.height;
+
+                    // Resize if necessary while maintaining aspect ratio
+                    if (imgWidth > imgHeight) {
+                        if (imgWidth > maxWidth) {
+                            imgHeight *= maxWidth / imgWidth;
+                            imgWidth = maxWidth;
+                        }
+                    } else {
+                        if (imgHeight > maxHeight) {
+                            imgWidth *= maxHeight / imgHeight;
+                            imgHeight = maxHeight;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = imgWidth;
+                    canvas.height = imgHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+                    // Try different quality settings if the initial conversion is too large
+                    const qualitySteps = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1];
+                    let blob;
+                    let resultQuality;
+
+                    for (let quality of qualitySteps) {
+                        blob = canvas.toDataURL('image/webp', quality);
+                        if (blob.length <= 100 * 1024) { // Check if blob size is less than 100 KB
+                            resultQuality = quality;
+                            break;
+                        }
+                    }
+
+                    if (!resultQuality) {
+                        alert('Unable to compress to below 100 KB. Try a smaller image.');
+                        return;
+                    }
+
+                    // Convert base64 to blob
+                    fetch(blob)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.style.display = 'none';
+                            a.href = url;
+                            a.download = 'image.webp';
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                        });
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(input);
+        });
+
+    </script>
+</body>
+
+</html>
