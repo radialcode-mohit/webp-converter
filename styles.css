@@ -2,12 +2,55 @@
 body, html {
     height: 100%;
     margin: 0;
+    background: linear-gradient(to right, #00BCB2, #7020C0); /* Simple gradient background */
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white; /* White text for contrast and readability */
 }
 
 .container {
+    padding: 20px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1); /* Very subtle transparency to blend in */
     text-align: center;
+    width: 300px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Soft shadow for depth */
+}
+
+input[type="file"] {
+    border: 2px solid rgba(255, 255, 255, 0.5); /* Semi-transparent white border */
+    padding: 8px;
+    width: calc(100% - 22px); /* Full width minus padding and border */
+    margin-bottom: 10px; /* Space below the input */
+    border-radius: 5px;
+    background: transparent; /* Let the gradient show through */
+    color: white; /* White text for inputs */
+}
+
+input[type="file"]:hover,
+input[type="file"]:focus {
+    border-color: rgba(255, 255, 255, 0.75); /* Brighter white on hover/focus */
+}
+
+button {
+    background-color: rgba(255, 255, 255, 0.3); /* Semi-transparent white background */
+    color: white; /* White text for readability */
+    border: none;
+    padding: 10px 20px;
+    text-transform: uppercase; /* Uppercase text for the button */
+    letter-spacing: 1px; /* Spacing between letters */
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s; /* Smooth transitions */
+}
+
+button:hover {
+    background-color: rgba(255, 255, 255, 0.5); /* More opaque white on hover */
+    transform: scale(1.05); /* Slightly larger on hover */
+}
+
+button:active {
+    transform: scale(0.95); /* Slightly smaller when clicked */
 }
