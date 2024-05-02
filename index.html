@@ -13,82 +13,80 @@
         <input type="file" id="imageInput" accept="image/*" multiple>
         <button id="convertButton">Convert to WebP</button>
     </div>
-    <script>// script.js
-        // script.js
+    <script>
         document.getElementById('convertButton').addEventListener('click', function () {
-            const files = document.getElementById('imageInput').files;
-            if (files.length === 0) {
-                alert('Please select one or more images.');
+            const input = document.getElementById('imageInput').files[0];
+            if (!input) {
+                alert('Please select an image.');
                 return;
             }
 
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    const img = new Image();
-                    img.onload = function () {
-                        const maxWidth = 800; // Maximum width for the resized image
-                        const maxHeight = 800; // Maximum height for the resized image
-                        let imgWidth = img.width;
-                        let imgHeight = img.height;
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const img = new Image();
+                img.onload = function () {
+                    const maxWidth = 2000; // Maximum width for the resized image
+                    const maxHeight = 2000; // Maximum height for the resized image
+                    let imgWidth = img.width;
+                    let imgHeight = img.height;
 
-                        // Resize if necessary while maintaining aspect ratio
-                        if (imgWidth > imgHeight) {
-                            if (imgWidth > maxWidth) {
-                                imgHeight *= maxWidth / imgWidth;
-                                imgWidth = maxWidth;
-                            }
-                        } else {
-                            if (imgHeight > maxHeight) {
-                                imgWidth *= maxHeight / imgHeight;
-                                imgHeight = maxHeight;
-                            }
+                    // Resize if necessary while maintaining aspect ratio
+                    if (imgWidth > maxWidth || imgHeight > maxHeight) {
+                        const scaleFactor = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+                        imgWidth *= scaleFactor;
+                        imgHeight *= scaleFactor;
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = imgWidth;
+                    canvas.height = imgHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+                    // Convert to WebP with dynamically adjusted quality
+                    let quality = 1.0; // Starting quality
+                    let blob;
+                    let blobSize;
+
+                    do {
+                        blob = canvas.toDataURL('image/webp', quality);
+                        blobSize = Math.round((blob.length * 3) / 4); // Estimate blob size from base64 length
+                        quality -= 0.01; // Decrease quality
+                    } while (blobSize > 100 * 1024 && quality > 0); // Repeat until size is under 100 KB or quality is 0
+
+                    if (quality <= 0) {
+                        alert('Unable to compress to below 100 KB. Try a smaller image.');
+                        return;
+                    }
+
+                    // Convert base64 to blob
+                    const byteCharacters = atob(blob.split(',')[1]);
+                    const byteArrays = [];
+                    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+                        const slice = byteCharacters.slice(offset, offset + 512);
+                        const byteNumbers = new Array(slice.length);
+                        for (let i = 0; i < slice.length; i++) {
+                            byteNumbers[i] = slice.charCodeAt(i);
                         }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        byteArrays.push(byteArray);
+                    }
+                    const blobData = new Blob(byteArrays, { type: 'image/webp' });
 
-                        const canvas = document.createElement('canvas');
-                        canvas.width = imgWidth;
-                        canvas.height = imgHeight;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-
-                        // Try different quality settings if the initial conversion is too large
-                        const qualitySteps = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1];
-                        let resultQuality;
-
-                        for (let quality of qualitySteps) {
-                            canvas.toBlob(function (blob) {
-                                if (blob.size <= 50 * 1024) { // Check if blob size is less than 50 KB
-                                    resultQuality = quality;
-                                    downloadBlob(blob, file.name); // Download the blob with a unique name
-                                    return;
-                                }
-                            }, 'image/webp', quality);
-                        }
-
-                        if (!resultQuality) {
-                            console.log('Unable to compress some images to below 50 KB.');
-                        }
-                    };
-                    img.src = event.target.result;
+                    // Create download link
+                    const url = window.URL.createObjectURL(blobData);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'image.webp';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
                 };
-                reader.readAsDataURL(file);
-            });
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(input);
         });
-
-        function downloadBlob(blob, originalName) {
-            const timestamp = new Date().getTime(); // Get current timestamp
-            const filename = originalName.replace(/\.\w+$/, '') + '_' + timestamp + '.webp'; // Append timestamp to the original file name
-
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename; // Use the unique filename for downloading
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-
     </script>
 </body>
 
